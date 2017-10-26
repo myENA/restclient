@@ -23,5 +23,3 @@ before_install:
 script:
   - go test
   - go install
-  - cd testradosgwproxy
-  - go install
