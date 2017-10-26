@@ -62,7 +62,6 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(fmt.Sprintf("Failed on NewClient call: %s\n", err))
 	}
-	client.c = server.Client()
 	rc := m.Run()
 	os.Exit(rc)
 }
