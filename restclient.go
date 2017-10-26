@@ -109,7 +109,7 @@ func NewClient(cfg *ClientConfig, transport http.RoundTripper) (*Client, error) 
 }
 
 // Get - makes an http GET request to burl with path appended, and queryStruct optionally
-// parsed by go-querystring and validated with go-playground/validator.v9.  Upon succesful
+// parsed by go-querystring and validated with go-playground/validator.v9.  Upon successful
 // request, response is unmarshaled as json into responseBody, unless responseBody implements
 // CustomDecoder, in which case Decode() is called.
 func (cl *Client) Get(ctx context.Context, burl *url.URL, path string, queryStruct interface{}, responseBody interface{}) error {
@@ -117,7 +117,7 @@ func (cl *Client) Get(ctx context.Context, burl *url.URL, path string, queryStru
 }
 
 // Delete - makes an http DELETE request to burl with path appended, and queryStruct optionally
-// parsed by go-querystring and validated with go-playground/validator.v9.  Upon succesful
+// parsed by go-querystring and validated with go-playground/validator.v9.  Upon successful
 // request, response is unmarshaled as json into responseBody, unless responseBody implements
 // CustomDecoder, in which case Decode() is called.
 func (cl *Client) Delete(ctx context.Context, burl *url.URL, path string, queryStruct interface{}, responseBody interface{}) error {
@@ -126,7 +126,7 @@ func (cl *Client) Delete(ctx context.Context, burl *url.URL, path string, queryS
 
 // Post - makes an http POST request to burl with path appended, and queryStruct optionally
 // parsed by go-querystring and validated with go-playground/validator.v9.  requestBody is
-// passed to go-playground/validator.v9 and is sent json-encoded as the body.  Upon succesful
+// passed to go-playground/validator.v9 and is sent json-encoded as the body.  Upon successful
 // request, response is unmarshaled as json into responseBody, unless responseBody implements
 // CustomDecoder, in which case Decode() is called.
 func (cl *Client) Post(ctx context.Context, burl *url.URL, path string, queryStruct, requestBody interface{}, responseBody interface{}) error {
@@ -135,7 +135,7 @@ func (cl *Client) Post(ctx context.Context, burl *url.URL, path string, queryStr
 
 // Put - makes an http PUT request to burl with path appended, and queryStruct optionally
 // parsed by go-querystring and validated with go-playground/validator.v9.  requestBody is
-// passed to go-playground/validator.v9 and is sent json-encoded as the body.  Upon succesful
+// passed to go-playground/validator.v9 and is sent json-encoded as the body.  Upon successful
 // request, response is unmarshaled as json into responseBody, unless responseBody implements
 // CustomDecoder, in which case Decode() is called.
 func (cl *Client) Put(ctx context.Context, burl *url.URL, path string, queryStruct, requestBody interface{}, responseBody interface{}) error {

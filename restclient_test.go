@@ -1,32 +1,32 @@
 package restclient
 
 import (
-	"testing"
-	"net/http/httptest"
-	"net/http"
-	"io/ioutil"
-	"os"
-	"fmt"
-	"net/url"
 	"context"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"os"
 	"reflect"
+	"testing"
 )
 
 var (
 	server *httptest.Server
 	client *Client
-	th *testHandler
-	u *url.URL
+	th     *testHandler
+	u      *url.URL
 )
 
 type testHandler struct {
-	url *url.URL
-	reqBody []byte
-	header http.Header
+	url       *url.URL
+	reqBody   []byte
+	header    http.Header
 	reqmethod string
-	response []byte
-	t *testing.T
+	response  []byte
+	t         *testing.T
 }
 
 func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -59,6 +59,9 @@ func TestMain(m *testing.M) {
 		panic(fmt.Sprintf("Failed on url.Parse call: %s, %s\n", server.URL, err))
 	}
 	client, err = NewClient(&ClientConfig{}, nil)
+	if err != nil {
+		panic(fmt.Sprintf("Failed on NewClient call: %s\n", err))
+	}
 	client.c = server.Client()
 	rc := m.Run()
 	os.Exit(rc)
@@ -77,7 +80,7 @@ func TestGet(t *testing.T) {
 		t.Fatal("Error marshaling: ", err)
 	}
 	reqb := &testValidatorRequest{
-		UID: "testuid",
+		UID:     "testuid",
 		KeyType: "s3",
 	}
 	tr2 := &testResponse{}
@@ -133,7 +136,7 @@ func TestPost(t *testing.T) {
 
 	tr2 := &testResponse{}
 	reqb := &testValidatorRequest{
-		UID: "testuid",
+		UID:     "testuid",
 		KeyType: "s3",
 	}
 	err = client.Post(context.Background(), u, "/whatever", nil, reqb, tr2)
@@ -173,7 +176,7 @@ func TestPut(t *testing.T) {
 
 	tr2 := &testResponse{}
 	reqb := &testValidatorRequest{
-		UID: "testuid",
+		UID:     "testuid",
 		KeyType: "s3",
 	}
 	err = client.Put(context.Background(), u, "/whatever", nil, reqb, tr2)
