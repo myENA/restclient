@@ -15,7 +15,7 @@ install:
   - dep ensure
 
 before_install:
-  - wget "https://github.com/golang/dep/releases/download/v$DEP_VER/dep-linux-amd64
+  - wget "https://github.com/golang/dep/releases/download/v$DEP_VER/dep-linux-amd64"
   - mkdir -p $HOME/bin
   - cp dep-linux-amd64 $HOME/bin/dep
 
