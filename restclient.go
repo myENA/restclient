@@ -101,6 +101,8 @@ func NewClient(cfg *ClientConfig, transport http.RoundTripper) (*Client, error) 
 		Transport: transport,
 	}
 
+	c.FixupCallback = cfg.FixupCallback
+
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +273,8 @@ func (cl *Client) validate(i interface{}) error {
 //
 // Specify CACertBundlePath to load a bundle from disk to override the default.
 // Specify CACertBundle if you want embed the cacert bundle in PEM format.
-// Specify one or the other.  If both are specified, CACertBundle is honored.
+// Specify one or the other if you want to override, or neither to use the
+// default.  If both are specified, CACertBundle is honored.
 type ClientConfig struct {
 	ClientTimeout      Duration
 	CACertBundlePath   string
@@ -279,6 +282,12 @@ type ClientConfig struct {
 	InsecureSkipVerify bool
 	Expiration         time.Time
 	RawValidatorErrors bool // If true, then no attempt to interpret validator errors will be made.
+
+	// FixupCallback - this is a method that will get called before every request
+	// so that you can, for instance, manipulate headers for auth purposes, for
+	// instance.
+	FixupCallback FixupCallback
+
 }
 
 // Duration - this allows us to use a text representation of a duration and
