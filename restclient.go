@@ -260,6 +260,11 @@ func (cl *Client) validate(i interface{}) error {
 							ferr.Value(), // for now all are string - revise this if other types are needed
 							strings.Join(valids, ",")),
 					)
+				} else {
+					errs = append(errs, fmt.Sprintf("Field '%s' invalid value: '%#v', validation tag was %s",
+						ferr.StructNamespace(),
+						ferr.Value(),
+						ferr.ActualTag()))
 				}
 			}
 
@@ -287,7 +292,6 @@ type ClientConfig struct {
 	// so that you can, for instance, manipulate headers for auth purposes, for
 	// instance.
 	FixupCallback FixupCallback
-
 }
 
 // Duration - this allows us to use a text representation of a duration and
