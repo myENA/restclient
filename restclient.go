@@ -283,14 +283,14 @@ func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string
 	if isNil(responseBody) {
 		return resp, nil
 	}
-
-	if cd, ok := responseBody.(CustomDecoder); ok {
-		return resp, cd.Decode(resp.Body)
-	}
-
 	var reader io.Reader = resp.Body
+
 	if cl.StripBOM {
 		reader = bom.NewReader(resp.Body)
+	}
+
+	if cd, ok := responseBody.(CustomDecoder); ok {
+		return resp, cd.Decode(reader)
 	}
 
 	return resp, json.NewDecoder(reader).Decode(responseBody)
