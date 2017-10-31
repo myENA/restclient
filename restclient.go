@@ -59,6 +59,9 @@ type Client struct {
 	// FormEncodedBody - setting this to true uses x-www-form-urlencoded.
 	// false (default) will do json encoding.
 	FormEncodedBody bool
+
+	// SkipValidate - setting this to true bypasses validator run.
+	SkipValidate bool
 }
 
 // CustomDecoder - If a response struct implements this interface,
@@ -68,7 +71,10 @@ type CustomDecoder interface {
 }
 
 // NewClient - Client factory method. - if transport is nil, build one
-// using config data in cfg
+// using config data in cfg.  This is optional, you can also initialize
+// the following way:
+//
+//    cl := &restclient.Client{Client: &http.Client{}}
 func NewClient(cfg *ClientConfig, transport http.RoundTripper) (*Client, error) {
 	c := &Client{}
 	var err error
@@ -128,38 +134,42 @@ func NewClient(cfg *ClientConfig, transport http.RoundTripper) (*Client, error) 
 	return c, nil
 }
 
-// Get - makes an http GET request to burl with path appended, and queryStruct optionally
+// Get - makes an http GET request to baseURL with path appended, and queryStruct optionally
 // parsed by go-querystring and validated with go-playground/validator.v9.  Upon successful
 // request, response is unmarshaled as json into responseBody, unless responseBody implements
 // CustomDecoder, in which case Decode() is called.
-func (cl *Client) Get(ctx context.Context, burl *url.URL, path string, queryStruct interface{}, responseBody interface{}) error {
-	return cl.Req(ctx, burl, "GET", path, queryStruct, nil, responseBody)
+func (cl *Client) Get(ctx context.Context, baseURL *url.URL, path string, queryStruct interface{}, responseBody interface{}) error {
+	_, err := cl.Req(ctx, baseURL, "GET", path, queryStruct, nil, responseBody)
+	return err
 }
 
-// Delete - makes an http DELETE request to burl with path appended, and queryStruct optionally
+// Delete - makes an http DELETE request to baseURL with path appended, and queryStruct optionally
 // parsed by go-querystring and validated with go-playground/validator.v9.  Upon successful
 // request, response is unmarshaled as json into responseBody, unless responseBody implements
 // CustomDecoder, in which case Decode() is called.
-func (cl *Client) Delete(ctx context.Context, burl *url.URL, path string, queryStruct interface{}, responseBody interface{}) error {
-	return cl.Req(ctx, burl, "DELETE", path, queryStruct, nil, responseBody)
+func (cl *Client) Delete(ctx context.Context, baseURL *url.URL, path string, queryStruct interface{}, responseBody interface{}) error {
+	_, err := cl.Req(ctx, baseURL, "DELETE", path, queryStruct, nil, responseBody)
+	return err
 }
 
-// Post - makes an http POST request to burl with path appended, and queryStruct optionally
+// Post - makes an http POST request to baseURL with path appended, and queryStruct optionally
 // parsed by go-querystring and validated with go-playground/validator.v9.  requestBody is
 // passed to go-playground/validator.v9 and is sent json-encoded as the body.  Upon successful
 // request, response is unmarshaled as json into responseBody, unless responseBody implements
 // CustomDecoder, in which case Decode() is called.
-func (cl *Client) Post(ctx context.Context, burl *url.URL, path string, queryStruct, requestBody interface{}, responseBody interface{}) error {
-	return cl.Req(ctx, burl, "POST", path, queryStruct, requestBody, responseBody)
+func (cl *Client) Post(ctx context.Context, baseURL *url.URL, path string, queryStruct, requestBody interface{}, responseBody interface{}) error {
+	_, err := cl.Req(ctx, baseURL, "POST", path, queryStruct, requestBody, responseBody)
+	return err
 }
 
-// Put - makes an http PUT request to burl with path appended, and queryStruct optionally
+// Put - makes an http PUT request to baseURL with path appended, and queryStruct optionally
 // parsed by go-querystring and validated with go-playground/validator.v9.  requestBody is
 // passed to go-playground/validator.v9 and is sent json-encoded as the body.  Upon successful
 // request, response is unmarshaled as json into responseBody, unless responseBody implements
 // CustomDecoder, in which case Decode() is called.
-func (cl *Client) Put(ctx context.Context, burl *url.URL, path string, queryStruct, requestBody interface{}, responseBody interface{}) error {
-	return cl.Req(ctx, burl, "PUT", path, queryStruct, requestBody, responseBody)
+func (cl *Client) Put(ctx context.Context, baseURL *url.URL, path string, queryStruct, requestBody interface{}, responseBody interface{}) error {
+	_, err := cl.Req(ctx, baseURL, "PUT", path, queryStruct, requestBody, responseBody)
+	return err
 }
 
 func isNil(i interface{}) bool {
@@ -177,17 +187,23 @@ func isNil(i interface{}) bool {
 }
 
 // Req - like the method-specific versions above, this is the general purpose.
-func (cl *Client) Req(ctx context.Context, burl *url.URL, method, path string, queryStruct, requestBody, responseBody interface{}) error {
+// the *http.Response return value will either be nil or return with the Body
+// closed and fully read.  This is mainly useful for inspecting headers, status
+// code etc.
+func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string,
+	queryStruct, requestBody, responseBody interface{}) (*http.Response, error) {
 	path = strings.TrimLeft(path, "/")
-	finurl := burl.String() + "/" + path
+	finurl := baseURL.String() + "/" + path
 	if !isNil(queryStruct) {
-		err := cl.validate(queryStruct)
-		if err != nil {
-			return err
+		if !cl.SkipValidate {
+			err := cl.validate(queryStruct)
+			if err != nil {
+				return nil, err
+			}
 		}
 		v, err := query.Values(queryStruct)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		qs := v.Encode()
@@ -203,27 +219,29 @@ func (cl *Client) Req(ctx context.Context, burl *url.URL, method, path string, q
 
 	var bodyReader io.Reader
 	if !isNil(requestBody) {
-		err := cl.validate(requestBody)
-		if err != nil {
-			return err
+		if !cl.SkipValidate {
+			err := cl.validate(requestBody)
+			if err != nil {
+				return nil, err
+			}
 		}
 		if cl.FormEncodedBody {
 			v, err := query.Values(requestBody)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			bodyReader = strings.NewReader(v.Encode())
 		} else {
 			bjson, err := json.Marshal(requestBody)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			bodyReader = bytes.NewReader(bjson)
 		}
 	}
 	req, err := http.NewRequest(method, finurl, bodyReader)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	req = req.WithContext(ctx)
@@ -237,12 +255,12 @@ func (cl *Client) Req(ctx context.Context, burl *url.URL, method, path string, q
 	if cl.FixupCallback != nil {
 		err = cl.FixupCallback(req)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 	resp, err := cl.Client.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer func() {
@@ -252,19 +270,19 @@ func (cl *Client) Req(ctx context.Context, burl *url.URL, method, path string, q
 		if cl.ErrorResponseCallback != nil {
 			err = cl.ErrorResponseCallback(resp)
 			if err != nil {
-				return err
+				return resp, err
 			}
 		} else {
 			body, _ := ioutil.ReadAll(resp.Body)
-			return fmt.Errorf("invalid status code %d : %s : body: %s", resp.StatusCode, resp.Status, string(body))
+			return resp, fmt.Errorf("invalid status code %d : %s : body: %s", resp.StatusCode, resp.Status, string(body))
 		}
 	}
 	if isNil(responseBody) {
-		return nil
+		return resp, nil
 	}
 
 	if cd, ok := responseBody.(CustomDecoder); ok {
-		return cd.Decode(resp.Body)
+		return resp, cd.Decode(resp.Body)
 	}
 
 	var reader io.Reader = resp.Body
@@ -272,7 +290,7 @@ func (cl *Client) Req(ctx context.Context, burl *url.URL, method, path string, q
 		reader = bom.NewReader(resp.Body)
 	}
 
-	return json.NewDecoder(reader).Decode(responseBody)
+	return resp, json.NewDecoder(reader).Decode(responseBody)
 }
 
 // make sense of the validator error types
@@ -359,4 +377,45 @@ func (d *Duration) UnmarshalText(text []byte) error {
 // MarshalText - this implements TextMarshaler
 func (d Duration) MarshalText() ([]byte, error) {
 	return []byte(time.Duration(d).String()), nil
+}
+
+// BaseClient - convenience wrapper for requests that all go to the same BaseURL.
+type BaseClient struct {
+	Client  *Client
+	BaseURL *url.URL
+}
+
+// Get - like Client.Get, except uses the BaseClient.BaseURL instead of needing to
+// be passed in.
+func (bc *BaseClient) Get(ctx context.Context, path string, queryStruct interface{}, responseBody interface{}) error {
+	_, err := bc.Client.Req(ctx, bc.BaseURL, "GET", path, queryStruct, nil, responseBody)
+	return err
+}
+
+// Delete - like Client.Delete, except uses BaseClient.BaseURL instead of needing to
+// be passed in.
+func (bc *BaseClient) Delete(ctx context.Context, path string, queryStruct interface{}, responseBody interface{}) error {
+	_, err := bc.Client.Req(ctx, bc.BaseURL, "DELETE", path, queryStruct, nil, responseBody)
+	return err
+}
+
+// Post - like Client.Post, except uses BaseClient.BaseURL instead of needing to
+// be passed in.
+func (bc *BaseClient) Post(ctx context.Context, path string, queryStruct, requestBody interface{}, responseBody interface{}) error {
+	_, err := bc.Client.Req(ctx, bc.BaseURL, "POST", path, queryStruct, requestBody, responseBody)
+	return err
+}
+
+// Put - like Client.Put, except uses BaseClient.BaseURL instead of needing to
+// be passed in.
+func (bc *BaseClient) Put(ctx context.Context, path string, queryStruct, requestBody interface{}, responseBody interface{}) error {
+	_, err := bc.Client.Req(ctx, bc.BaseURL, "PUT", path, queryStruct, requestBody, responseBody)
+	return err
+}
+
+// Req - like Client.Req, except uses BaseClient.BaseURL instead of needing to be
+// passed in.
+func (bc *BaseClient) Req(ctx context.Context, method, path string, queryStruct,
+	requestBody interface{}, responseBody interface{}) (*http.Response, error) {
+	return bc.Client.Req(ctx, bc.BaseURL, method, path, queryStruct, requestBody, responseBody)
 }
