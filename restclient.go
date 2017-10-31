@@ -192,8 +192,11 @@ func isNil(i interface{}) bool {
 // code etc.
 func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string,
 	queryStruct, requestBody, responseBody interface{}) (*http.Response, error) {
-	path = strings.TrimLeft(path, "/")
-	finurl := baseURL.String() + "/" + path
+	finurl := baseURL.String()
+	if path != "" {
+		path = strings.TrimLeft(path, "/")
+		finurl = baseURL.String() + "/" + path
+	}
 	if !isNil(queryStruct) {
 		if !cl.SkipValidate {
 			err := cl.validate(queryStruct)
