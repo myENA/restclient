@@ -20,6 +20,12 @@
   revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/spkg/bom"
+  packages = ["."]
+  revision = "59b7046e48ad6bac800c5e1dd5142282cbfcf154"
+
+[[projects]]
   name = "gopkg.in/go-playground/validator.v9"
   packages = ["."]
   revision = "1304298bf10d085adec514b076772a79c9cadb6b"
@@ -28,6 +34,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e358456c0bd44a0276548fa6d507296ac2a625ee9241a468e9a5d6699b3f6576"
+  inputs-digest = "a56fa7c34625134af8b519a0d0c0d2e52d15119da63a9ea8d6d092c59bf25382"
   solver-name = "gps-cdcl"
   solver-version = 1

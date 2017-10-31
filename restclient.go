@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/google/go-querystring/query"
+	"github.com/spkg/bom"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -41,6 +42,14 @@ type Client struct {
 	// Specifying this allows you to modify headers, add
 	// auth tokens or signatures etc before the request is sent.
 	FixupCallback FixupCallback
+
+	// StripBOM - setting this to true gives you the option to strip
+	// byte order markings from certain responses.
+	StripBOM bool
+
+	// FormEncodedBody - setting this to true uses x-www-form-urlencoded.
+	// false (default) will do json encoding.
+	FormEncodedBody bool
 }
 
 // CustomDecoder - If a response struct implements this interface,
@@ -187,20 +196,32 @@ func (cl *Client) Req(ctx context.Context, burl *url.URL, method, path string, q
 		if err != nil {
 			return err
 		}
-		bjson, err := json.Marshal(requestBody)
-		if err != nil {
-			return err
+		if cl.FormEncodedBody {
+			v, err := query.Values(requestBody)
+			if err != nil {
+				return err
+			}
+			bodyReader = strings.NewReader(v.Encode())
+		} else {
+			bjson, err := json.Marshal(requestBody)
+			if err != nil {
+				return err
+			}
+			bodyReader = bytes.NewReader(bjson)
 		}
-		bodyReader = bytes.NewReader(bjson)
 	}
 	req, err := http.NewRequest(method, finurl, bodyReader)
 	if err != nil {
 		return err
 	}
 
-	req.Header["Content-Type"] = []string{"application/json"}
-
 	req = req.WithContext(ctx)
+
+	if cl.FormEncodedBody {
+		req.Header["Content-Type"] = []string{"application/x-www-form-urlencoded"}
+	} else {
+		req.Header["Content-Type"] = []string{"application/json"}
+	}
 
 	if cl.FixupCallback != nil {
 		err = cl.FixupCallback(req)
@@ -228,7 +249,12 @@ func (cl *Client) Req(ctx context.Context, burl *url.URL, method, path string, q
 		return cd.Decode(resp.Body)
 	}
 
-	return json.NewDecoder(resp.Body).Decode(responseBody)
+	var reader io.Reader = resp.Body
+	if cl.StripBOM {
+		reader = bom.NewReader(resp.Body)
+	}
+
+	return json.NewDecoder(reader).Decode(responseBody)
 }
 
 // make sense of the validator error types
