@@ -35,6 +35,11 @@ func init() {
 // instance.
 type FixupCallback func(req *http.Request) error
 
+// ErrorResponseCallback - this allows you to hook into the error response,
+// for response codes that are >= 400.  If error returned here is nil,
+// processing continues.  Otherwise, the error returned is bubbled to caller.
+type ErrorResponseCallback func(resp *http.Response) error
+
 // Client - admin api struct
 type Client struct {
 	Client             *http.Client
@@ -42,6 +47,10 @@ type Client struct {
 	// Specifying this allows you to modify headers, add
 	// auth tokens or signatures etc before the request is sent.
 	FixupCallback FixupCallback
+
+	// ErrorResponseCallback - allows you to specify custom behavior
+	// on responses that are >= 400 status code.
+	ErrorResponseCallback ErrorResponseCallback
 
 	// StripBOM - setting this to true gives you the option to strip
 	// byte order markings from certain responses.
@@ -239,9 +248,16 @@ func (cl *Client) Req(ctx context.Context, burl *url.URL, method, path string, q
 	defer func() {
 		_ = resp.Body.Close()
 	}()
-	if resp.StatusCode != 200 {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("invalid status code %d : %s : body: %s", resp.StatusCode, resp.Status, string(body))
+	if resp.StatusCode >= 400 {
+		if cl.ErrorResponseCallback != nil {
+			err = cl.ErrorResponseCallback(resp)
+			if err != nil {
+				return err
+			}
+		} else {
+			body, _ := ioutil.ReadAll(resp.Body)
+			return fmt.Errorf("invalid status code %d : %s : body: %s", resp.StatusCode, resp.Status, string(body))
+		}
 	}
 	if isNil(responseBody) {
 		return nil
