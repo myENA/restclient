@@ -36,7 +36,7 @@ type FixupCallback func(req *http.Request) error
 
 // Client - admin api struct
 type Client struct {
-	c                  *http.Client
+	Client             *http.Client
 	rawValidatorErrors bool
 	// Specifying this allows you to modify headers, add
 	// auth tokens or signatures etc before the request is sent.
@@ -96,7 +96,7 @@ func NewClient(cfg *ClientConfig, transport http.RoundTripper) (*Client, error) 
 		transport = t
 	}
 
-	c.c = &http.Client{
+	c.Client = &http.Client{
 		Timeout:   time.Duration(cfg.ClientTimeout),
 		Transport: transport,
 	}
@@ -208,7 +208,7 @@ func (cl *Client) Req(ctx context.Context, burl *url.URL, method, path string, q
 			return err
 		}
 	}
-	resp, err := cl.c.Do(req)
+	resp, err := cl.Client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -304,10 +304,4 @@ func (d *Duration) UnmarshalText(text []byte) error {
 // MarshalText - this implements TextMarshaler
 func (d Duration) MarshalText() ([]byte, error) {
 	return []byte(time.Duration(d).String()), nil
-}
-
-// HTTPClient return the underlying http.Client.  You can use this to fine tune
-// the http.Transport settings, for example.
-func (cl *Client) HTTPClient() *http.Client {
-	return cl.c
 }
