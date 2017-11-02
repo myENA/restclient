@@ -221,6 +221,7 @@ func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string
 	}
 
 	var bodyReader io.Reader
+	var contentLength int64
 	if !isNil(requestBody) {
 		if !cl.SkipValidate {
 			err := cl.validate(requestBody)
@@ -233,13 +234,17 @@ func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string
 			if err != nil {
 				return nil, err
 			}
-			bodyReader = strings.NewReader(v.Encode())
+
+			rawBody := v.Encode()
+			contentLength = int64(len(rawBody))
+			bodyReader = strings.NewReader(rawBody)
 		} else {
 			bjson, err := json.Marshal(requestBody)
 			if err != nil {
 				return nil, err
 			}
 			bodyReader = bytes.NewReader(bjson)
+			contentLength = int64(len(bjson))
 		}
 	}
 	req, err := http.NewRequest(method, finurl, bodyReader)
@@ -249,6 +254,7 @@ func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string
 
 	req = req.WithContext(ctx)
 
+	req.ContentLength = contentLength
 	if cl.FormEncodedBody {
 		req.Header["Content-Type"] = []string{"application/x-www-form-urlencoded"}
 	} else {
