@@ -283,7 +283,13 @@ func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string
 			}
 		} else {
 			body, _ := ioutil.ReadAll(resp.Body)
-			return resp, fmt.Errorf("invalid status code %d : %s : body: %s", resp.StatusCode, resp.Status, string(body))
+			rs := &ResponseError{
+				Status:       resp.Status,
+				StatusCode:   resp.StatusCode,
+				ResponseBody: body,
+				Header:       resp.Header,
+			}
+			return resp, rs
 		}
 	}
 	if isNil(responseBody) {
@@ -427,4 +433,20 @@ func (bc *BaseClient) Put(ctx context.Context, path string, queryStruct, request
 func (bc *BaseClient) Req(ctx context.Context, method, path string, queryStruct,
 	requestBody interface{}, responseBody interface{}) (*http.Response, error) {
 	return bc.Client.Req(ctx, bc.BaseURL, method, path, queryStruct, requestBody, responseBody)
+}
+
+type ResponseError struct {
+	Status       string
+	StatusCode   int
+	ResponseBody []byte
+	Header       http.Header
+}
+
+func (rs *ResponseError) Error() string {
+
+	return fmt.Sprintf("response returned error status %d: %s with response payload: %s",
+		rs.StatusCode,
+		rs.Status,
+		rs.ResponseBody,
+	)
 }
