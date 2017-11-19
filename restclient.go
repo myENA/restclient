@@ -308,6 +308,21 @@ func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string
 	return resp, json.NewDecoder(reader).Decode(responseBody)
 }
 
+// ValidationErrors - this is a thin wrapper around the validator
+// ValidationErrors type.  This makes a friendlier error message
+// that attempts to interpret why validation failed and give
+// a user friendly message.
+type ValidationErrors struct {
+	// The original unmolested ValidationErrors from the validator package
+	OrigVE       validator.ValidationErrors
+	parsedErrStr string
+}
+
+// Error - implement the Error interface.
+func (ve ValidationErrors) Error() string {
+	return ve.parsedErrStr
+}
+
 // make sense of the validator error types
 func (cl *Client) validate(i interface{}) error {
 	err := validate.Struct(i)
@@ -343,7 +358,10 @@ func (cl *Client) validate(i interface{}) error {
 				}
 			}
 
-			return fmt.Errorf("Validation error: %s", strings.Join(errs, " ; "))
+			return ValidationErrors{
+				OrigVE:       verr,
+				parsedErrStr: fmt.Sprintf("Validation error: %s", strings.Join(errs, " ; ")),
+			}
 		}
 	}
 	return err
