@@ -63,7 +63,13 @@ func (uc UserCap) String() string {
 func main() {
 	u, _ := url.Parse("http://localhost:8200/admin")
 	bc := &rc.BaseClient{
-		Client:  &rc.Client{Client: &http.Client{}},
+		Client: &rc.Client{
+			Client: &http.Client{},
+			FixupCallback: func(req *http.Request) error {
+				req.Header.Set("User-Agent", "TotallyChromeAndStuff")
+				return nil
+			},
+		},
 		BaseURL: u,
 	}
 	ucr := &UserCapsRequest{

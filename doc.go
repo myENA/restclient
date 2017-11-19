@@ -1,5 +1,4 @@
 // Package restclient
-//
 // This is yet another rest http client package for consuming APIs.  The goal
 // of this is to cover the most common use cases and be easy to use.  This
 // package has two main dependencies,
@@ -63,10 +62,16 @@
 //
 //    func main() {
 //    	u, _ := url.Parse("http://localhost:8200/admin")
-//    	bc := &rc.BaseClient{
-//    		Client:  &rc.Client{Client: &http.Client{}},
-//    		BaseURL: u,
-//    	}
+//      bc := &rc.BaseClient{
+//      Client: &rc.Client{
+//          Client: &http.Client{},
+//          FixupCallback: func(req *http.Request) error {
+//              req.Header.Set("User-Agent", "TotallyChromeAndStuff")
+//              return nil
+//          },
+//      },
+//		BaseURL: u,
+//	}
 //    	ucr := &UserCapsRequest{
 //    		UID: "59",
 //    		UserCaps: []UserCap{
