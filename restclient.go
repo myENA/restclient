@@ -177,8 +177,9 @@ func isNil(i interface{}) bool {
 		return true
 	}
 	v := reflect.ValueOf(i)
+
 	switch v.Kind() {
-	case reflect.Ptr:
+	case reflect.Ptr, reflect.Slice:
 		return v.IsNil()
 
 	default:
@@ -224,6 +225,7 @@ func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string
 	var contentLength int64
 	if !isNil(requestBody) {
 		if !cl.SkipValidate {
+
 			err := cl.validate(requestBody)
 			if err != nil {
 				return nil, err
@@ -325,7 +327,24 @@ func (ve ValidationErrors) Error() string {
 
 // make sense of the validator error types
 func (cl *Client) validate(i interface{}) error {
-	err := validate.Struct(i)
+	var err error
+	rbv := reflect.ValueOf(i)
+	rbvk := rbv.Kind()
+	if rbvk == reflect.Slice || (rbvk == reflect.Ptr && rbv.Elem().Kind() == reflect.Slice) {
+		if rbvk == reflect.Ptr {
+			rbv = rbv.Elem()
+
+		}
+		for i := 0; i < rbv.Len(); i++ {
+			err = validate.Struct(rbv.Index(i).Interface())
+			if err != nil {
+				break
+			}
+		}
+
+	} else {
+		err = validate.Struct(i)
+	}
 	if err != nil {
 		if cl.rawValidatorErrors {
 			return err
