@@ -1,5 +1,4 @@
-// Package restclient
-// This is yet another rest http client package for consuming APIs.  The goal
+// Package restclient - This is yet another rest http client package for consuming APIs.  The goal
 // of this is to cover the most common use cases and be easy to use.  This
 // package has two main dependencies,
 //

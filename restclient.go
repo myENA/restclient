@@ -474,6 +474,7 @@ func (bc *BaseClient) Req(ctx context.Context, method, path string, queryStruct,
 	return bc.Client.Req(ctx, bc.BaseURL, method, path, queryStruct, requestBody, responseBody)
 }
 
+// ResponseError - this is an http response error type.  returned on >=400 status code.
 type ResponseError struct {
 	Status       string
 	StatusCode   int
