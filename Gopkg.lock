@@ -3,9 +3,12 @@
 
 [[projects]]
   name = "github.com/go-playground/locales"
-  packages = [".","currency"]
-  revision = "e4cbcb5d0652150d40ad0646651076b6bd2be4f6"
-  version = "v0.11.2"
+  packages = [
+    ".",
+    "currency"
+  ]
+  revision = "f63010822830b6fe52288ee52d5a1151088ce039"
+  version = "v0.12.1"
 
 [[projects]]
   name = "github.com/go-playground/universal-translator"
@@ -28,8 +31,8 @@
 [[projects]]
   name = "gopkg.in/go-playground/validator.v9"
   packages = ["."]
-  revision = "1304298bf10d085adec514b076772a79c9cadb6b"
-  version = "v9.8.0"
+  revision = "f28cb45dc0f0f406ba2015cdb59a5203ad220bc2"
+  version = "v9.17.1"
 
 [solve-meta]
   analyzer-name = "dep"
