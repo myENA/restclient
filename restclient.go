@@ -295,6 +295,8 @@ func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string
 		}
 	}
 	if isNil(responseBody) {
+		// throw away body so pooling works
+		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		return resp, nil
 	}
 	var reader io.Reader = resp.Body
