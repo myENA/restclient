@@ -79,6 +79,10 @@ func NewClient(cfg *ClientConfig, transport http.RoundTripper) (*Client, error) 
 	c := &Client{}
 	var err error
 
+	if cfg == nil {
+		cfg = defConfig()
+	}
+
 	if transport == nil {
 		// Lifted from http package DefaultTransort.
 		t := &http.Transport{
@@ -132,6 +136,12 @@ func NewClient(cfg *ClientConfig, transport http.RoundTripper) (*Client, error) 
 	}
 
 	return c, nil
+}
+
+func defConfig() *ClientConfig {
+	return &ClientConfig{
+		ClientTimeout: Duration(3 * time.Second),
+	}
 }
 
 // Get - makes an http GET request to baseURL with path appended, and queryStruct optionally
