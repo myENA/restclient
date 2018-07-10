@@ -168,6 +168,22 @@ func NewClient(cfg *ClientConfig, transport http.RoundTripper) (*Client, error) 
 	return c, nil
 }
 
+// NewBaseClient - create a new BaseClient instance based off of the baseURL string.
+func NewBaseClient(baseURL string, cfg *ClientConfig, transport http.RoundTripper) (*BaseClient, error) {
+	bURL, err := url.Parse(baseURL)
+	if err != nil {
+		return nil, err
+	}
+	client, err := NewClient(cfg, transport)
+	if err != nil {
+		return nil, err
+	}
+	return &BaseClient{
+		Client:  client,
+		BaseURL: bURL,
+	}, nil
+}
+
 func defConfig() *ClientConfig {
 	return &ClientConfig{
 		ClientTimeout: Duration(3 * time.Second),
