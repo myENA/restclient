@@ -31,8 +31,8 @@
 [[projects]]
   name = "gopkg.in/go-playground/validator.v9"
   packages = ["."]
-  revision = "f28cb45dc0f0f406ba2015cdb59a5203ad220bc2"
-  version = "v9.17.1"
+  revision = "ab2a8a99087e827c9af87ed6777ba897348fb178"
+  version = "v9.20.2"
 
 [solve-meta]
   analyzer-name = "dep"
