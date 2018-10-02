@@ -114,6 +114,7 @@ func NewClient(cfg *ClientConfig, transport http.RoundTripper) (*Client, error) 
 		SkipValidate:       cfg.SkipValidate,
 		rawValidatorErrors: cfg.RawValidatorErrors,
 		StripBOM:           cfg.StripBOM,
+		FixupCallback:      cfg.FixupCallback,
 	}
 
 	if transport == nil {
