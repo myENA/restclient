@@ -332,6 +332,8 @@ func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string
 	}
 
 	defer func() {
+		// Throw away any remainder of the body so pooling works.
+		io.Copy(ioutil.Discard, resp.Body)
 		_ = resp.Body.Close()
 	}()
 	if resp.StatusCode >= 400 {
@@ -352,8 +354,6 @@ func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string
 		}
 	}
 	if isNil(responseBody) {
-		// throw away body so pooling works
-		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		return resp, nil
 	}
 	var reader io.Reader = resp.Body
