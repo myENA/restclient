@@ -250,6 +250,12 @@ func isNil(i interface{}) bool {
 // code etc.
 func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string,
 	queryStruct, requestBody, responseBody interface{}) (*http.Response, error) {
+	return cl.ReqWithHeaders(ctx, baseURL, method, path, queryStruct, requestBody, responseBody, nil)
+}
+
+// ReqWithHeaders - this is Req allowing you to specify custom headers.
+func (cl *Client) ReqWithHeaders(ctx context.Context, baseURL *url.URL, method, path string,
+	queryStruct, requestBody, responseBody interface{}, headers http.Header) (*http.Response, error) {
 	finurl := baseURL.String()
 	if path != "" {
 		path = strings.TrimLeft(path, "/")
@@ -313,6 +319,9 @@ func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string
 
 	req = req.WithContext(ctx)
 
+	for k, h := range headers {
+		req.Header[k] = h
+	}
 	req.ContentLength = contentLength
 	if req.Header.Get("Content-Type") == "" {
 		if cl.FormEncodedBody {
@@ -511,6 +520,13 @@ func (bc *BaseClient) Put(ctx context.Context, path string, queryStruct, request
 func (bc *BaseClient) Req(ctx context.Context, method, path string, queryStruct,
 	requestBody interface{}, responseBody interface{}) (*http.Response, error) {
 	return bc.Client.Req(ctx, bc.BaseURL, method, path, queryStruct, requestBody, responseBody)
+}
+
+// ReqWithHeaders - like client.ReqWithHeaders, except uses BaseClient.BaseURL instead of needing
+// to be passed in.
+func (bc *BaseClient) ReqWithHeaders(ctx context.Context, method, path string, queryStruct,
+	requestBody interface{}, responseBody interface{}, headers http.Header) (*http.Response, error) {
+	return bc.Client.ReqWithHeaders(ctx, bc.BaseURL, method, path, queryStruct, requestBody, responseBody, headers)
 }
 
 // ResponseError - this is an http response error type.  returned on >=400 status code.
