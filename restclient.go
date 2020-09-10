@@ -314,10 +314,12 @@ func (cl *Client) Req(ctx context.Context, baseURL *url.URL, method, path string
 	req = req.WithContext(ctx)
 
 	req.ContentLength = contentLength
-	if cl.FormEncodedBody {
-		req.Header["Content-Type"] = []string{"application/x-www-form-urlencoded"}
-	} else {
-		req.Header["Content-Type"] = []string{"application/json"}
+	if req.Header.Get("Content-Type") == "" {
+		if cl.FormEncodedBody {
+			req.Header["Content-Type"] = []string{"application/x-www-form-urlencoded"}
+		} else {
+			req.Header["Content-Type"] = []string{"application/json"}
+		}
 	}
 
 	if cl.FixupCallback != nil {
