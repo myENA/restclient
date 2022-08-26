@@ -10,10 +10,12 @@ Package restclient
 
 This is yet another rest http client package for consuming APIs. The goal of this is to cover the most common use cases and be easy to use. This package has two main dependencies,
 
-    gopkg.in/go-playground/validator.v9
+[github.com/go-playground/validator/v10](https://pkg.go.dev/github.com/go-playground/validator/v10)
+
 and
 
-    github.com/google/go-querystring
+[github.com/google/go-querystring](https://pkg.go.dev/github.com/google/go-querystring)
+
 There are two main ways to use this, the Client methods, or BaseClient methods. BaseClient is a thin wrapper around Client, but but has a baseURL stored inside the struct so that will be used for each request. This is useful when the client will be hitting endpoints on a single base URL. The other way is with Client, which allows you to specify a baseURL with each call.
 
 Following is an example program that demonstrates how to use this package.
