@@ -17,9 +17,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/google/go-querystring/query"
 	"github.com/spkg/bom"
-	"gopkg.in/go-playground/validator.v9"
 )
 
 var validate *validator.Validate
@@ -103,7 +103,7 @@ type CustomDecoder interface {
 // using config data in cfg.  This is optional, you can also initialize
 // the following way:
 //
-//    cl := &restclient.Client{Client: &http.Client{}}
+//	cl := &restclient.Client{Client: &http.Client{}}
 func NewClient(cfg *ClientConfig, transport http.RoundTripper) (*Client, error) {
 
 	if cfg == nil {
